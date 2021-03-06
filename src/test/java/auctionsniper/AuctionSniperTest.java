@@ -44,6 +44,15 @@ class AuctionSniperTest {
   }
 
   @Test
+  void reports_won_if_auction_closes_when_winning() {
+    sniper.currentPrice(123, 45, PriceSource.FromSniper);
+    sniper.auctionClosed();
+
+    verify(sniperListenerSpy, atLeastOnce()).sniperWon();
+    assertThat(sniperState).isEqualTo(SniperState.winning);
+  }
+
+  @Test
   void bids_higher_and_reports_bidding_when_new_price_arrives() {
     final int price = 1001;
     final int increment = 25;
@@ -74,6 +83,12 @@ class AuctionSniperTest {
 
     @Override
     public void sniperWinning() {
+      sniperState = SniperState.winning;
+    }
+
+    @Override
+    public void sniperWon() {
+
     }
   }
 }
