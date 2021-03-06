@@ -44,7 +44,7 @@ public class AuctionSniperDriver extends JFrameDriver {
             withLabelText(Column.ITEM_IDENTIFIER.name),
             withLabelText(Column.LAST_PRICE.name),
             withLabelText(Column.LAST_BID.name),
-            withLabelText(Column.SNIPER_STATUS.name)
+            withLabelText(Column.SNIPER_STATE.name)
         )
     );
   }

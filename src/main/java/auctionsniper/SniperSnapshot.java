@@ -1,5 +1,7 @@
 package auctionsniper;
 
+import java.util.Objects;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -32,6 +34,10 @@ public class SniperSnapshot {
 
   public SniperSnapshot closed() {
     return new SniperSnapshot(itemId, lastPrice, lastBid, state.whenAuctionClosed());
+  }
+
+  public boolean isForSameItemAs(SniperSnapshot snapshot) {
+    return Objects.equals(this.itemId, snapshot.itemId);
   }
 
   @Override

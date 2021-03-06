@@ -22,7 +22,7 @@ public enum Column {
       return snapshot.lastBid;
     }
   },
-  SNIPER_STATUS("State") {
+  SNIPER_STATE("State") {
     @Override
     public Object valueIn(SniperSnapshot snapshot) {
       return SnipersTableModel.textFor(snapshot.state);
