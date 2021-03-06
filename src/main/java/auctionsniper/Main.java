@@ -41,25 +41,7 @@ public class Main {
     Main main = new Main();
     XMPPConnection connection = connection(args[ARG_HOSTNAME], args[ARG_USERNAME], args[ARG_PASSWORD]);
     main.disconnectWhenUICloses(connection);
-
-    for (int i = 3; i < args.length; i++) {
-      main.joinAuction(connection, args[i]);
-    }
-  }
-
-  private void joinAuction(XMPPConnection connection, String itemId)
-      throws InvocationTargetException, InterruptedException {
-    safelyAddItemToModel(itemId);
-
-    Chat chat = connection.getChatManager().createChat(auctionId(itemId, connection), null);
-
-    notToBeGCd.add(chat);
-
-    Auction auction = new XMPPAuction(chat);
-    chat.addMessageListener(new AuctionMessageTranslator(
-        connection.getUser(),
-        new AuctionSniper(itemId, auction, new SwingThreadSniperListener(snipers))));
-    auction.join();
+    main.addUserRequestListenerFor(connection);
   }
 
   private void disconnectWhenUICloses(final XMPPConnection connection) {
@@ -71,8 +53,18 @@ public class Main {
     });
   }
 
-  private void safelyAddItemToModel(final String itemId) throws InvocationTargetException, InterruptedException {
-    SwingUtilities.invokeAndWait(() -> snipers.addSniper(SniperSnapshot.joining(itemId)));
+  private void addUserRequestListenerFor(final XMPPConnection connection) {
+    ui.addUserRequestListener(itemId -> {
+      snipers.addSniper(SniperSnapshot.joining(itemId));
+      Chat chat = connection.getChatManager().createChat(auctionId(itemId, connection), null);
+
+      notToBeGCd.add(chat);
+      Auction auction = new XMPPAuction(chat);
+      chat.addMessageListener(new AuctionMessageTranslator(
+          connection.getUser(),
+          new AuctionSniper(itemId, auction, new SwingThreadSniperListener(snipers))));
+      auction.join();
+    });
   }
 
   private static XMPPConnection connection(String hostname, String username, String password) throws XMPPException {
@@ -125,7 +117,7 @@ public class Main {
 
     @Override
     public void sniperStateChanged(SniperSnapshot snapshot) {
-      SwingUtilities.invokeLater(() -> ui.sniperStatusChanged(snapshot));
+      snipers.sniperStatusChanged(snapshot);
     }
   }
 }
