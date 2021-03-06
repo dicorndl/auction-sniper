@@ -12,20 +12,19 @@ import auctionsniper.AuctionEventListener.PriceSource;
 @ExtendWith(MockitoExtension.class)
 class AuctionSniperTest {
 
-  private enum SniperState {
+  private enum SniperStateStub {
     idle,
     winning,
     bidding;
   }
 
 
+  private static final String ITEM_ID = "item-id";
+
   private SniperListener sniperListenerSpy = spy(new SniperListenerStub());
-
   private Auction auction = mock(Auction.class);
-
   private AuctionSniper sniper = new AuctionSniper(auction, sniperListenerSpy);
-
-  private SniperState sniperState = SniperState.idle;
+  private SniperStateStub sniperState = SniperStateStub.idle;
 
   @Test
   void reports_lost_if_auction_closes_immediately() {
@@ -40,7 +39,7 @@ class AuctionSniperTest {
     sniper.auctionClosed();
 
     verify(sniperListenerSpy, atLeastOnce()).sniperLost();
-    assertThat(sniperState).isEqualTo(SniperState.bidding);
+    assertThat(sniperState).isEqualTo(SniperStateStub.bidding);
   }
 
   @Test
@@ -49,18 +48,19 @@ class AuctionSniperTest {
     sniper.auctionClosed();
 
     verify(sniperListenerSpy, atLeastOnce()).sniperWon();
-    assertThat(sniperState).isEqualTo(SniperState.winning);
+    assertThat(sniperState).isEqualTo(SniperStateStub.winning);
   }
 
   @Test
   void bids_higher_and_reports_bidding_when_new_price_arrives() {
     final int price = 1001;
     final int increment = 25;
+    final int bid = price + increment;
 
     sniper.currentPrice(price, increment, PriceSource.FromOtherBidder);
 
-    verify(auction, times(1)).bid(price + increment);
-    verify(sniperListenerSpy, atLeastOnce()).sniperBidding();
+    verify(auction, times(1)).bid(bid);
+    verify(sniperListenerSpy, atLeastOnce()).sniperBidding(eq(new SniperState(ITEM_ID, price, bid)));
   }
 
   @Test
@@ -77,13 +77,13 @@ class AuctionSniperTest {
     }
 
     @Override
-    public void sniperBidding() {
-      sniperState = SniperState.bidding;
+    public void sniperBidding(final SniperState state) {
+      sniperState = SniperStateStub.bidding;
     }
 
     @Override
     public void sniperWinning() {
-      sniperState = SniperState.winning;
+      sniperState = SniperStateStub.winning;
     }
 
     @Override
