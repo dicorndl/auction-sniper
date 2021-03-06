@@ -11,6 +11,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
 import auctionsniper.ui.MainWindow;
+import auctionsniper.ui.SnipersTableModel;
 
 public class Main {
 
@@ -26,14 +27,13 @@ public class Main {
   public static final String JOIN_COMMAND_FORMAT = "";
   public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID, Price: %d;";
 
-  public static final String MAIN_WINDOW_NAME = "Auction Sniper";
-
+  private final SnipersTableModel snipers = new SnipersTableModel();
   private MainWindow ui;
   @SuppressWarnings("unused")
   private Chat notToBeGCd;
 
   public Main() throws InvocationTargetException, InterruptedException {
-    startUserInterface();
+    SwingUtilities.invokeAndWait(() -> ui = new MainWindow(snipers));
   }
 
   public static void main(String... args) throws InvocationTargetException, InterruptedException, XMPPException {
@@ -52,7 +52,7 @@ public class Main {
     Auction auction = new XMPPAuction(chat);
     chat.addMessageListener(new AuctionMessageTranslator(
         connection.getUser(),
-        new AuctionSniper(auction, new SniperStateDisplayer())));
+        new AuctionSniper(itemId, auction, new SwingThreadSniperListener(snipers))));
     auction.join();
   }
 
@@ -75,10 +75,6 @@ public class Main {
 
   private static String auctionId(String itemId, XMPPConnection connection) {
     return String.format(AUCTION_ID_FORMAT, itemId, connection.getServiceName());
-  }
-
-  private void startUserInterface() throws InvocationTargetException, InterruptedException {
-    SwingUtilities.invokeAndWait(() -> ui = new MainWindow());
   }
 
   public static class XMPPAuction implements Auction {
@@ -109,30 +105,17 @@ public class Main {
   }
 
 
-  public class SniperStateDisplayer implements SniperListener {
+  public class SwingThreadSniperListener implements SniperListener {
 
-    @Override
-    public void sniperLost() {
-      showStatus(MainWindow.STATUS_LOST);
+    private final SnipersTableModel snipers;
+
+    public SwingThreadSniperListener(SnipersTableModel snipers) {
+      this.snipers = snipers;
     }
 
     @Override
-    public void sniperBidding(final SniperState state) {
-      SwingUtilities.invokeLater(() -> ui.sniperStatusChanged(state, MainWindow.STATUS_BIDDING));
-    }
-
-    @Override
-    public void sniperWinning() {
-      showStatus(MainWindow.STATUS_WINNING);
-    }
-
-    @Override
-    public void sniperWon() {
-      showStatus(MainWindow.STATUS_WON);
-    }
-
-    private void showStatus(final String status) {
-      SwingUtilities.invokeLater(() -> ui.showStatusText(status));
+    public void sniperStateChanged(SniperSnapshot snapshot) {
+      SwingUtilities.invokeLater(() -> ui.sniperStatusChanged(snapshot));
     }
   }
 }

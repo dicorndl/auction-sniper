@@ -49,8 +49,8 @@ public class AuctionMessageTranslator implements MessageListener {
 
     public PriceSource isFrom(String sniperId) {
       return sniperId.equals(bidder())
-          ? PriceSource.FromSniper
-          : PriceSource.FromOtherBidder;
+          ? PriceSource.FROM_SNIPER
+          : PriceSource.FROM_OTHER_BIDDER;
     }
 
     private int getInt(String fieldName) {

@@ -36,7 +36,7 @@ public class AuctionMessageTranslatorTest {
 
     translator.processMessage(UNUSED_CHAT, message);
 
-    verify(lister, times(1)).currentPrice(192, 7, PriceSource.FromOtherBidder);
+    verify(lister, times(1)).currentPrice(192, 7, PriceSource.FROM_OTHER_BIDDER);
   }
 
   @Test
@@ -47,6 +47,6 @@ public class AuctionMessageTranslatorTest {
 
     translator.processMessage(UNUSED_CHAT, message);
 
-    verify(lister, times(1)).currentPrice(234, 5, PriceSource.FromSniper);
+    verify(lister, times(1)).currentPrice(234, 5, PriceSource.FROM_SNIPER);
   }
 }

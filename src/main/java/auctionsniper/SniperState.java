@@ -1,33 +1,36 @@
 package auctionsniper;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+public enum SniperState {
 
-public class SniperState {
+  JOINING {
+    @Override
+    public SniperState whenAuctionClosed() {
+      return LOST;
+    }
+  },
+  BIDDING {
+    @Override
+    public SniperState whenAuctionClosed() {
+      return LOST;
+    }
+  },
+  WINNING {
+    @Override
+    public SniperState whenAuctionClosed() {
+      return WON;
+    }
+  },
+  LOST,
+  WON;
 
-  public final String itemId;
-  public final int lastPrice;
-  public final int lastBid;
-
-  public SniperState(String itemId, int lastPrice, int lastBid) {
-    this.itemId = itemId;
-    this.lastPrice = lastPrice;
-    this.lastBid = lastBid;
+  public SniperState whenAuctionClosed() {
+    throw new Defect("Auction is already closed");
   }
 
-  @Override
-  public boolean equals(Object o) {
-    return EqualsBuilder.reflectionEquals(this, o);
-  }
+  public static class Defect extends RuntimeException {
 
-  @Override
-  public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this);
-  }
-
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this);
+    public Defect(String message) {
+      super(message);
+    }
   }
 }

@@ -4,10 +4,11 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import auctionsniper.Main;
-import auctionsniper.SniperState;
+import auctionsniper.SniperSnapshot;
 
 public class MainWindow extends JFrame {
+
+  public static final String MAIN_WINDOW_NAME = "Auction Sniper";
 
   public static final String STATUS_JOINING = "Joining";
   public static final String STATUS_BIDDING = "Bidding";
@@ -15,13 +16,15 @@ public class MainWindow extends JFrame {
   public static final String STATUS_LOST = "Lost";
   public static final String STATUS_WON = "Won";
 
-  public static final String SNIPER_TABLE_NAME = "sniper status";
+  public static final String APPLICATION_TITLE = "Auction Sniper";
+  public static final String SNIPER_TABLE_NAME = "Snipers";
 
-  private final SnipersTableModel snipers = new SnipersTableModel();
+  private final SnipersTableModel snipers;
 
-  public MainWindow() {
-    super("Auction Sniper");
-    setName(Main.MAIN_WINDOW_NAME);
+  public MainWindow(SnipersTableModel snipers) {
+    super(APPLICATION_TITLE);
+    this.snipers = snipers;
+    setName(MAIN_WINDOW_NAME);
     fillContentPane(makeSnipersTable());
     pack();
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -41,11 +44,7 @@ public class MainWindow extends JFrame {
     return snipersTable;
   }
 
-  public void showStatusText(String statusText) {
-    snipers.setStatusText(statusText);
-  }
-
-  public void sniperStatusChanged(SniperState sniperState, String statusText) {
-    snipers.sniperStatusChanged(sniperState, statusText);
+  public void sniperStatusChanged(SniperSnapshot sniperSnapshot) {
+    snipers.sniperStatusChanged(sniperSnapshot);
   }
 }
