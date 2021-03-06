@@ -1,7 +1,7 @@
 package auctionsniper;
 
+import static com.objogate.wl.swing.matcher.IterableComponentsMatcher.*;
 import static com.objogate.wl.swing.matcher.JLabelTextMatcher.*;
-import static org.hamcrest.Matchers.*;
 
 import com.objogate.wl.swing.AWTEventQueueProber;
 import com.objogate.wl.swing.driver.JFrameDriver;
@@ -16,7 +16,13 @@ public class AuctionSniperDriver extends JFrameDriver {
         new AWTEventQueueProber(timeoutMillis, 100));
   }
 
-  public void showsSniperStatus(String statusText) {
-    new JTableDriver(this).hasCell(withLabelText(equalTo(statusText)));
+  public void showsSniperStatus(String itemId, int lastPrice, int lastBid, String statusText) {
+    JTableDriver table = new JTableDriver(this);
+    table.hasRow(
+        matching(
+            withLabelText(itemId),
+            withLabelText(String.valueOf(lastPrice)),
+            withLabelText(String.valueOf(lastBid)),
+            withLabelText(statusText)));
   }
 }
