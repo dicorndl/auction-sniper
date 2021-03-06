@@ -1,11 +1,10 @@
 package auctionsniper;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import auctionsniper.AuctionEventListener.PriceSource;
@@ -13,20 +12,35 @@ import auctionsniper.AuctionEventListener.PriceSource;
 @ExtendWith(MockitoExtension.class)
 class AuctionSniperTest {
 
-  @Mock
-  private SniperListener sniperListener;
+  private enum SniperState {
+    idle,
+    winning,
+    bidding;
+  }
 
-  @Mock
-  private Auction auction;
 
-  @InjectMocks
-  private AuctionSniper sniper;
+  private SniperListener sniperListenerSpy = spy(new SniperListenerStub());
+
+  private Auction auction = mock(Auction.class);
+
+  private AuctionSniper sniper = new AuctionSniper(auction, sniperListenerSpy);
+
+  private SniperState sniperState = SniperState.idle;
 
   @Test
-  void reports_lost_when_auction_closes() {
+  void reports_lost_if_auction_closes_immediately() {
     sniper.auctionClosed();
 
-    verify(sniperListener, times(1)).sniperLost();
+    verify(sniperListenerSpy, times(1)).sniperLost();
+  }
+
+  @Test
+  void reports_lost_if_auction_closes_when_bidding() {
+    sniper.currentPrice(123, 45, PriceSource.FromOtherBidder);
+    sniper.auctionClosed();
+
+    verify(sniperListenerSpy, atLeastOnce()).sniperLost();
+    assertThat(sniperState).isEqualTo(SniperState.bidding);
   }
 
   @Test
@@ -37,13 +51,29 @@ class AuctionSniperTest {
     sniper.currentPrice(price, increment, PriceSource.FromOtherBidder);
 
     verify(auction, times(1)).bid(price + increment);
-    verify(sniperListener, atLeastOnce()).sniperBidding();
+    verify(sniperListenerSpy, atLeastOnce()).sniperBidding();
   }
 
   @Test
   void reports_is_winning_when_current_price_comes_from_sniper() {
     sniper.currentPrice(123, 45, PriceSource.FromSniper);
 
-    verify(sniperListener, atLeastOnce()).sniperWinning();
+    verify(sniperListenerSpy, atLeastOnce()).sniperWinning();
+  }
+
+  private class SniperListenerStub implements SniperListener {
+
+    @Override
+    public void sniperLost() {
+    }
+
+    @Override
+    public void sniperBidding() {
+      sniperState = SniperState.bidding;
+    }
+
+    @Override
+    public void sniperWinning() {
+    }
   }
 }
